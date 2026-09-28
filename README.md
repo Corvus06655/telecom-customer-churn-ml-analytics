@@ -150,8 +150,8 @@ The notebook also contains exploratory views for overall churn, gender, senior-c
 ### Setup and validation
 
 ```bash
-git clone https://github.com/Corvus06655/telecom-customer-retention-analytics.git
-cd telecom-customer-retention-analytics
+git clone https://github.com/Corvus06655/telecom-customer-churn-ml-analytics.git
+cd telecom-customer-churn-ml-analytics
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
