@@ -85,7 +85,18 @@ The project uses observed churn and customer-volume measures rather than profita
 
 > **CSV ingestion → schema and quality inspection → `TotalCharges` preparation → identifier and target validation → readable category recoding → segment churn comparisons → retention interpretation**
 
-The notebook’s primary exploratory story moves from overall churn to gender and senior-citizen comparisons, tenure distribution, and contract-level churn. The reproducibility workflow validates the source file but does not execute the notebook or regenerate the chart automatically.
+The notebook’s primary exploratory story moves from overall churn to gender and senior-citizen comparisons, tenure distribution, and contract-level churn. The ML section extends this workflow with a stratified train/test split, one-hot encoding, feature scaling, baseline comparison, four classifiers, and holdout metrics.
+
+## Predictive Modeling
+
+`telecom_customer_churn_analysis.ipynb` provides the complete exploratory and predictive churn-classification workflow:
+
+- Drops the customer identifier from modeling features and maps `Churn` to a binary target.
+- Uses an 80/20 stratified split, standardizes features for Logistic Regression and KNN, and one-hot encodes categorical fields with Pandas.
+- Compares a majority-class baseline with Logistic Regression, Decision Tree, Random Forest, and KNN classifiers.
+- Evaluates accuracy, precision, recall, F1, classification reports, and a confusion matrix.
+
+On the notebook’s fixed `random_state=42` holdout, Logistic Regression is the best model by both accuracy (**0.807**) and F1 (**0.609**), with **0.658 precision** and **0.567 recall**. Random Forest reaches **0.806 accuracy**, while the majority-class baseline reaches **0.735 accuracy**. These are benchmark results for the supplied extract, not production performance or causal evidence; threshold selection should follow the business cost of missed churn versus unnecessary outreach.
 
 ## Key Findings from the Current Extract
 
@@ -122,7 +133,8 @@ The notebook also contains exploratory views for overall churn, gender, senior-c
 - Replacing blank `TotalCharges` with zero is an explicit modeling assumption for the available records and should be validated with the source owner.
 - The project is descriptive and does not establish causal effects.
 - Contract, payment, internet service, tenure, and senior-citizen differences may be confounded by one another and by unobserved customer-experience factors.
-- No experiment, treatment-control design, survival model, or production churn-prediction model is implemented.
+- No experiment, treatment-control design, survival model, calibrated probability workflow, or production scoring service is implemented.
+- The classification models are benchmark models trained and evaluated on this extract; they require monitoring, calibration, leakage review, threshold selection, and prospective validation before operational use.
 - Revenue, margin, cost-to-serve, acquisition cost, and retention-program economics are not available as decision KPIs.
 - The automated workflow validates the dataset but does not run the notebook end to end.
 
@@ -133,6 +145,7 @@ The notebook also contains exploratory views for overall churn, gender, senior-c
 - Python 3.11 or a compatible Python 3 release.
 - The dependencies listed in `requirements.txt`.
 - Jupyter for interactive notebook execution.
+- scikit-learn for the classification pipelines and evaluation metrics.
 
 ### Setup and validation
 
@@ -166,16 +179,16 @@ Then open `telecom_customer_churn_analysis.ipynb` in Jupyter and run the cells f
 └── README.md
 ```
 
-The repository keeps the source extract, notebook, validation workflow, profiling utility, and decision-facing chart together. Duplicate image exports and the stale narrative PDF are not retained.
+The repository keeps the source extract, exploratory notebook, ML notebook, validation workflow, profiling utility, and decision-facing chart together. Duplicate image exports and the stale narrative PDF are not retained.
 
 ## Professional Positioning
 
-This project does not claim unique data or a production churn model. Its portfolio value comes from framing churn as a retention decision problem, separating observed segment differences from causal claims, documenting the `TotalCharges` preparation assumption, validating identifiers and target labels, and showing how additional operational data would be needed before intervention decisions are made.
+This project does not claim unique data or a production churn model. Its portfolio value comes from framing churn as a retention decision problem, separating observed segment differences from causal claims, documenting the `TotalCharges` preparation assumption, validating identifiers and target labels, benchmarking interpretable and ensemble classifiers, and showing how additional operational data would be needed before intervention decisions are made.
 
 ## References
 
 [1]: Customer.csv "Customer-level telecom churn extract used by the project"
-[2]: telecom_customer_churn_analysis.ipynb "Notebook containing the data preparation and exploratory analysis workflow"
+[2]: telecom_customer_churn_analysis.ipynb "Notebook containing the exploratory analysis and churn-classification workflow"
 [3]: scripts/validate_data.py "Automated dataset validation checks"
 [4]: scripts/profile_data.py "Reproducible segment-rate profiling utility"
 [5]: images/churn-rate-by-contract.png "Observed churn rate by contract type"
