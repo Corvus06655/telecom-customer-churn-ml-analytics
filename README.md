@@ -138,6 +138,52 @@ The notebook also contains exploratory views for overall churn, gender, senior-c
 - Revenue, margin, cost-to-serve, acquisition cost, and retention-program economics are not available as decision KPIs.
 - The automated workflow validates the dataset but does not run the notebook end to end.
 
+## FastAPI Prediction Service
+
+The project now includes a FastAPI service that trains the documented Logistic Regression benchmark on startup and exposes an interactive API.
+
+### Run locally
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Open [http://localhost:8000/docs](http://localhost:8000/docs) for Swagger UI. The main endpoints are:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /health` | Service health check |
+| `GET /metrics` | Holdout metrics for the startup-trained model |
+| `POST /predict` | Predict churn and return probability for one customer |
+
+`POST /predict` accepts the customer fields used by the notebook, excluding `customerID` and `Churn`. See the generated OpenAPI schema at `/docs` for the exact request body.
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "gender": "Female", "SeniorCitizen": 0, "Partner": "Yes", "Dependents": "No",
+    "tenure": 12, "PhoneService": "Yes", "MultipleLines": "No",
+    "InternetService": "Fiber optic", "OnlineSecurity": "No", "OnlineBackup": "No",
+    "DeviceProtection": "No", "TechSupport": "No", "StreamingTV": "No",
+    "StreamingMovies": "No", "Contract": "Month-to-month", "PaperlessBilling": "Yes",
+    "PaymentMethod": "Electronic check", "MonthlyCharges": 70.35, "TotalCharges": 844.2
+  }'
+```
+
+### Deployment
+
+`Dockerfile` and `render.yaml` are included for container or Render deployment. Set the service start command to:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+The service is intended for demonstration and portfolio use. Predictions are benchmark outputs from an anonymized extract, not causal conclusions or production retention decisions.
+
 ## Reproducibility
 
 ### Requirements
@@ -169,13 +215,20 @@ Then open `telecom_customer_churn_analysis.ipynb` in Jupyter and run the cells f
 │   └── workflows/
 │       └── validate.yml
 ├── Customer.csv
+├── app/
+│   ├── __init__.py
+│   └── main.py
 ├── telecom_customer_churn_analysis.ipynb
 ├── images/
 │   └── churn-rate-by-contract.png
+├── Dockerfile
+├── render.yaml
 ├── requirements.txt
 ├── scripts/
 │   ├── profile_data.py
 │   └── validate_data.py
+├── tests/
+│   └── test_api.py
 └── README.md
 ```
 
